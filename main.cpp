@@ -1,7 +1,6 @@
-#include <iostream>
 #include <list>
-//#include <map>
-//#include <assert.h>
+#include <iostream>
+#include <fstream>
 #include <functional>
 
 class Parser
@@ -85,8 +84,8 @@ public:
         for (const auto& subscriber : m_subscribers)
         {
             subscriber(commands);
-            commands.clear();
         }
+        commands.clear();
     }
 
 private:
@@ -109,10 +108,26 @@ public:
 class LogWriter
 {
 public:
+    LogWriter()
+    {
+        m_logFile.open ("/tmp/bulk.txt");
+    }
+
+    ~LogWriter()
+    {
+        m_logFile.close();
+    }
+
     void write(std::list<std::string> commands)
     {
-        //todo
+        m_logFile << "bulk:";
+        for (auto command : commands)
+            m_logFile << command << " ";
+        m_logFile << std::endl;
     }
+
+private:
+    std::ofstream m_logFile;
 };
 
 //$ bulk < bulk1.txt
