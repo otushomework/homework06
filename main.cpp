@@ -2,6 +2,10 @@
 #include <iostream>
 #include <fstream>
 #include <functional>
+#include <stdlib.h>
+#include <ctime>
+#include <unistd.h>
+#include <stdio.h>
 
 class Parser
 {
@@ -108,32 +112,40 @@ public:
 class LogWriter
 {
 public:
-    LogWriter()
-    {
-        m_logFile.open ("/tmp/bulk.txt");
-    }
+    LogWriter() { }
 
-    ~LogWriter()
-    {
-        m_logFile.close();
-    }
+    ~LogWriter() { }
 
     void write(std::list<std::string> commands)
     {
-        m_logFile << "bulk:";
-        for (auto command : commands)
-            m_logFile << command << " ";
-        m_logFile << std::endl;
-    }
+        std::ofstream logFile;
 
-private:
-    std::ofstream m_logFile;
+        std::time_t result = std::time(nullptr);
+        char buff[FILENAME_MAX];
+        getcwd(buff, FILENAME_MAX );
+        std::string current_working_dir(buff);
+        logFile.open (std::string(current_working_dir + "/bulk" + std::to_string(result) + ".log"));
+        std::cout << std::string(current_working_dir + "/bulk" + std::to_string(result) + ".log") << std::endl;
+        logFile << "bulk:";
+        for (auto command : commands)
+            logFile << command << " ";
+        logFile << std::endl;
+
+        logFile.close();
+    }
 };
 
 //$ bulk < bulk1.txt
-int main(int, char *[])
+int main(int argc, const char *argv[])
 {
-    Parser parser(3);
+    int bulkCount = 5;
+    if (argc == 2)
+    {
+        char *p;
+        bulkCount = std::strtol(argv[1], &p, 10);
+    }
+
+    Parser parser(bulkCount);
 
     Executor executor;
     parser.subscribe(std::bind(&Executor::execute, &executor, std::placeholders::_1));
